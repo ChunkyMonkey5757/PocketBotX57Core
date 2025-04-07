@@ -1,20 +1,39 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Now Python can find the 'src' module
+
 import asyncio
 from telegram.ext import Application, CommandHandler
 from src.signal_engine.engine import SignalEngine
 from src.config import TELEGRAM_BOT_TOKEN
 import ccxt.async_support as ccxt
 import pandas as pd
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 async def fetch_data(asset="BTC/USD"):
-    exchange = ccxt.kraken()
-    ohlcv = await exchange.fetch_ohlcv(asset, timeframe='1m', limit=50)
-    await exchange.close()
-    return pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+    exchanges = [ccxt.kraken(), ccxt.binance()]
+    for exchange in exchanges:
+        try:
+            ohlcv = await exchange.fetch_ohlcv(asset, timeframe='1m', limit=50)
+            await exchange.close()
+            return pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+        except Exception as e:
+            logger.error(f"Failed to fetch data from {exchange.id}: {str(e)}")
+            await exchange.close()
+    logger.error("All exchanges failed to fetch data")
+    return None
 
-engine = SignalEngine()  # Single instance for state (weights)
+engine = SignalEngine()
 
 async def signal_command(update, context):
     data = await fetch_data()
+    if data is None:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Failed to fetch market data. Try again later.")
+        return
     signal = await engine.process_market_data("BTC/USD", data)
     if signal:
         price = data['close'].iloc[-1]
