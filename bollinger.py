@@ -8,7 +8,8 @@ import numpy as np
 from typing import Dict, Optional
 import logging
 from pandas_ta import bbands
-from src.indicators.indicator_base import IndicatorBase
+# Old: from src.indicators.indicator_base import IndicatorBase
+from indicator_base import IndicatorBase
 
 logger = logging.getLogger("pocketbotx57.indicators.bollinger")
 

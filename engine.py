@@ -10,9 +10,9 @@ import numpy as np
 from typing import Dict, Optional
 import logging
 
-from ..indicators.rsi import RSIStrategy
-from ..indicators.macd import MACDStrategy
-from ..indicators.bollinger import BollingerBandsStrategy
+from rsi import RSIStrategy
+from macd import MACDStrategy
+from bollinger import BollingerBandsStrategy
 
 logger = logging.getLogger("pocketbotx57.signal_engine")
 
@@ -24,12 +24,12 @@ class SignalEngine:
             'macd': MACDStrategy(),
             'bollinger': BollingerBandsStrategy()
         }
-        self.weights = {'rsi': 0.15, 'macd': 0.20, 'bollinger': 0.15}  # Initial weights
+        self.weights = {'rsi': 0.15, 'macd': 0.20, 'bollinger': 0.15}
         self.min_confidence = self.config.get('min_confidence', 0.85)
         self.cooldown_period = self.config.get('cooldown_period', 120)
         self.last_signal_time = {}
-        self.signal_history = []  # For feedback and learning
-        self.learning_rate = 0.05  # AI Lite: Adjust weights by this amount
+        self.signal_history = []
+        self.learning_rate = 0.05
         logger.info("Signal Engine (MVP + AI Lite) initialized")
 
     async def process_market_data(self, asset: str, data: pd.DataFrame) -> Optional[Dict]:
@@ -45,7 +45,7 @@ class SignalEngine:
         signal = self._combine_indicator_signals(signals)
         
         if signal and signal['confidence'] >= self.min_confidence:
-            signal['id'] = str(np.random.randint(10000, 99999))  # Simple ID for feedback
+            signal['id'] = str(np.random.randint(10000, 99999))
             signal['asset'] = asset
             signal['timestamp'] = datetime.now().isoformat()
             self.last_signal_time[asset] = current_time
@@ -98,11 +98,10 @@ class SignalEngine:
         signal['outcome'] = outcome
         for strategy in signal.get('contributing_strategies', []):
             if outcome and signal['action'] == signals[strategy]['action']:
-                self.weights[strategy] = min(0.35, self.weights[strategy] + self.learning_rate)  # Cap at 0.35
+                self.weights[strategy] = min(0.35, self.weights[strategy] + self.learning_rate)
             elif not outcome:
-                self.weights[strategy] = max(0.05, self.weights[strategy] - self.learning_rate)  # Floor at 0.05
+                self.weights[strategy] = max(0.05, self.weights[strategy] - self.learning_rate)
         
-        # Normalize weights to sum to ~0.5 (leaving room for future indicators)
         total = sum(self.weights.values())
         for k in self.weights:
             self.weights[k] /= total / 0.5

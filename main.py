@@ -1,12 +1,9 @@
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-# Now Python can find the 'src' module
-
 import asyncio
 from telegram.ext import Application, CommandHandler
-from src.signal_engine.engine import SignalEngine
-from src.config import TELEGRAM_BOT_TOKEN
+from engine import SignalEngine
+from config import TELEGRAM_BOT_TOKEN
 import ccxt.async_support as ccxt
 import pandas as pd
 import logging

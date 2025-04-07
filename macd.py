@@ -10,7 +10,8 @@ from typing import Dict, Optional, Union, Tuple
 import uuid
 from datetime import datetime
 
-from src.indicators.indicator_base import IndicatorBase
+# Old: from src.indicators.indicator_base import IndicatorBase
+from indicator_base import IndicatorBase
 
 # Setup logging
 logger = logging.getLogger("pocketbotx57.indicators.macd")
